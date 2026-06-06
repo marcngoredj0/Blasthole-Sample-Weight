@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BH Sample Weight Form</title>
+
+<style>
+body {
+    font-family: Arial;
+    padding: 10px;
+    background: #f5f5f5;
+}
+
+.container {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.container input,
+.container select {
+    width: 100%;
+    padding: 15px;
+    margin: 5px 0;
+    font-size: 16px;
+}
+
+/* Makes text LOOK uppercase while typing */
+input {
+    text-transform: uppercase;
+}
+
+button {
+    padding: 15px;
+    margin-top: 10px;
+    width: 100%;
+    font-size: 16px;
+    background: #0078d4;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
+#dataTable {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+#dataTable th:nth-child(1),
+#dataTable td:nth-child(1) { width: 36%; }
+
+#dataTable th:nth-child(2),
+#dataTable td:nth-child(2) { width: 14%; }
+
+#dataTable th:nth-child(3),
+#dataTable td:nth-child(3) { width: 15%; }
+
+#dataTable th:nth-child(4),
+#dataTable td:nth-child(4) { width: 40%; }
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 6px;
+    text-align: center;
+}
+
+th {
+    background: #ddd;
+}
+
+#dataTable input,
+#dataTable select {
+    width: 100%;
+    height: 48px;
+    font-size: 16px;
+    padding: 6px;
+    box-sizing: border-box;
+}
+
+.hole-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.generated {
+    font-size: 12px;
+    word-break: break-word;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>BH Sample Weight Form</h2>
+
+<label>Technician</label>
+<select id="name">
+    <option>Quincy Pieka</option>
+    <option>Sherwien Pahladsingh</option>
+    <option>Romario With</option>
+    <option>Julio Martodikromo</option>
+    <option>Diego Alihussein</option>
+</select>
+
+<label>Datum</label>
+<input type="date" id="date">
+
+<label>Shift</label>
+<select id="shift">
+    <option value="DS">DS</option>
+    <option value="NS">NS</option>
+</select>
+
+<label>Pattern ID</label>
+<input type="text" id="patternId"
+       oninput="this.value = this.value.toUpperCase()">
+
+<label>Rows</label>
+<input type="number" id="rowCount" value="10">
+
+<button onclick="generateRows()">Generate Records</button>
+
+<table id="dataTable">
+<thead>
+<tr>
+    <th>Hole ID</th>
+    <th>A/B</th>
+    <th>Weight</th>
+    <th>Full Sample ID</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<button onclick="submitData()">Submit & Export</button>
+
+</div>
+
+<script>
+document.getElementById("date").valueAsDate = new Date();
+
+function generateRows() {
+    const tableBody = document.querySelector("#dataTable tbody");
+    tableBody.innerHTML = "";
+
+    const rows = parseInt(document.getElementById("rowCount").value);
+
+    for (let i = 0; i < rows; i++) {
+        let row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td>
+                <div class="hole-container">
+                    <input class="holePrefix" type="text" placeholder="AA"
+                           oninput="this.value = this.value.toUpperCase()">
+                    <span>-</span>
+                    <input class="holeNumber" type="number" inputmode="numeric"
+                           placeholder="16"
+                           oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                </div>
+            </td>
+            <td>
+                <select class="sample">
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="">-</option>
+                </select>
+            </td>
+            <td><input type="number" step="0.1"></td>
+            <td class="generated"></td>
+        `;
+
+        tableBody.appendChild(row);
+
+        row.querySelector(".holePrefix").addEventListener("input", () => updateGenerated(row));
+        row.querySelector(".holeNumber").addEventListener("input", () => updateGenerated(row));
+        row.querySelector(".sample").addEventListener("change", () => updateGenerated(row));
+    }
+}
+
+function updateGenerated(row) {
+    const pattern = document.getElementById("patternId").value.toUpperCase();
+    const prefix = row.querySelector(".holePrefix").value.toUpperCase();
+    const number = row.querySelector(".holeNumber").value;
+    const sample = row.querySelector(".sample").value;
+
+    const generated = row.querySelector(".generated");
+
+    if (prefix && number && pattern) {
+        const hole = `${prefix}-${number}`;
+
+        if (sample) {
+            generated.innerText = `${pattern}-${hole}-${sample}`;
+        } else {
+            generated.innerText = `${pattern}-${hole}`;
+        }
+    } else {
+        generated.innerText = "";
+    }
+}
+
+function submitData() {
+    let name = document.getElementById("name").value;
+    let date = document.getElementById("date").value;
+    let shift = document.getElementById("shift").value;
+    let pattern = document.getElementById("patternId").value.toUpperCase();
+
+    let rows = document.querySelectorAll("#dataTable tbody tr");
+
+    let csv = "Name,Date,Shift,PatternID,HoleID,Sample,Weight,GeneratedID\n";
+
+    rows.forEach(row => {
+        let prefix = row.querySelector(".holePrefix").value.toUpperCase();
+        let number = row.querySelector(".holeNumber").value;
+        let sample = row.querySelector(".sample").value;
+        let weight = row.children[2].querySelector("input").value;
+
+        let hole = prefix && number ? `${prefix}-${number}` : "";
+        let generated = "";
+
+        if (hole && pattern) {
+            generated = sample ? `${pattern}-${hole}-${sample}` : `${pattern}-${hole}`;
+        }
+
+        if (hole) {
+            csv += `${name},${date},${shift},${pattern},${hole},${sample},${weight},${generated}\n`;
+        }
+    });
+
+    const subject = encodeURIComponent("Sample Data Submission");
+    const body = encodeURIComponent(csv);
+
+    window.location.href =
+        `mailto:marc.ngore@gmail.com,marc_ngoredjo@rosebel.com?subject=${subject}&body=${body}`;
+}
+</script>
+
+</body>
+</html>

@@ -26,7 +26,7 @@ body {
     font-size: 16px;
 }
 
-/* Makes text LOOK uppercase while typing */
+
 input {
     text-transform: uppercase;
 }
@@ -104,7 +104,10 @@ th {
     <option>Sherwien Pahladsingh</option>
     <option>Romario With</option>
     <option>Julio Martodikromo</option>
-    <option>Diego Alihussein</option>
+    <option>Diego Alihoesein</option>
+    <option>Migamba With</option>
+    <option>Marcel Landveld</option>
+    <option></option>
 </select>
 
 <label>Datum</label>
@@ -232,11 +235,13 @@ function submitData() {
         }
     });
 
-    const subject = encodeURIComponent("Sample Data Submission");
+    const subject = encodeURIComponent(
+    `BH Sample Weight - ${name} - ${date} - ${pattern}`
+);
     const body = encodeURIComponent(csv);
 
     window.location.href =
-        `mailto:marc.ngore@gmail.com,marc_ngoredjo@rosebel.com?subject=${subject}&body=${body}`;
+        `mailto:Radjkumar_Surinder@rosebel.com,Jamal_Clemens@rosebel.com,Arti_Vishnudatt@rosebel.com,Abdoul_Allane@rosebel.com,Rohan_Ramnares@rosebel.com,Joe_Zhang@rosebel.com,marc_ngoredjo@rosebel.com?subject=${subject}&body=${body}`;
 }
 </script>
 
